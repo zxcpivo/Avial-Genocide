@@ -1,0 +1,4 @@
+repository "Avial Genocide@l1hoded@cloud"
+  path "/"
+    br "/main"
+    co "/main"
