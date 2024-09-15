@@ -17,5 +17,6 @@ public class learning : MonoBehaviour
 
         Debug.Log("somerthing created");
 
+        Debug.Log("123");
     }
 }

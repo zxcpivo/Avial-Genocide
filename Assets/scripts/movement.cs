@@ -27,6 +27,7 @@ public class movement : MonoBehaviour
 
         transform.position = pos;
 
+        
 
     }
 }
