@@ -7,7 +7,7 @@ public class learning : MonoBehaviour
     private void Start()
     {
 
-        Player = new Player();
+       // Player = new Player();
 
 
 
