@@ -1,18 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;  // Needed for restarting the game
+using UnityEngine.SceneManagement;  // Add this to handle scene reloading
 
 public class DuckController : MonoBehaviour
 {
-    public GameObject duckPrefab;          // Prefab for normal ducks
-    public GameObject blackDuckPrefab;     // Prefab for black ducks
-    public GameObject deathScreenPrefab;   // Prefab for the death screen (replace sprite)
-    public GameObject deathScreenText;     // Text that shows up on the death screen
-    public float spawnInterval = 1.5f;     // Interval at which ducks appear
-    public float duckLifetime = 3.0f;      // Time before the duck disappears if not shot
+    public GameObject duckPrefab;       // Prefab for normal ducks
+    public GameObject blackDuckPrefab;  // Prefab for black ducks
+    public GameObject deathScreenPrefab;  // Prefab for the death screen
+    public float spawnInterval = 1.5f;  // Interval at which ducks appear
+    public float duckLifetime = 3.0f;   // Time before the duck disappears if not shot
 
-    private bool isGameOver = false;       // Track if the game is over
+    private bool isGameOver = false;    // Track if the game is over
 
     private void Start()
     {
@@ -22,7 +21,7 @@ public class DuckController : MonoBehaviour
 
     private void Update()
     {
-        // Check if the game is over and the player presses the space bar to restart
+        // If the game is over and the player presses space, restart the game
         if (isGameOver && Input.GetKeyDown(KeyCode.Space))
         {
             RestartGame();
@@ -55,9 +54,10 @@ public class DuckController : MonoBehaviour
         if (duckBehavior != null)
         {
             duckBehavior.SetDuckController(this);  // Pass reference of DuckController to DuckBehavior
+            // If it's a black duck, mark it as such
             if (duckPrefabToSpawn == blackDuckPrefab)
             {
-                duckBehavior.isBlackDuck = true;  // Mark it as a black duck
+                duckBehavior.isBlackDuck = true;
             }
         }
 
@@ -95,33 +95,36 @@ public class DuckController : MonoBehaviour
     {
         isGameOver = true;  // Stop duck spawning
 
+        Debug.Log("Game over triggered");
+
         // Instantiate the death screen prefab
         if (deathScreenPrefab != null)
         {
-            GameObject deathScreenObj = Instantiate(deathScreenPrefab);
-            deathScreenObj.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, 0);  // Center the death screen
+            GameObject deathScreen = Instantiate(deathScreenPrefab);
+            deathScreen.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, 0);  // Center the death screen
+            Debug.Log("Death screen instantiated and positioned.");
         }
         else
         {
-            Debug.LogError("Death Screen Prefab is not assigned in the Inspector!");
+            Debug.LogError("Death screen prefab is not assigned in the Inspector!");
         }
 
-        // Instantiate the "Press space to try again" text
-        if (deathScreenText != null)
-        {
-            GameObject textObj = Instantiate(deathScreenText);
-            textObj.transform.SetParent(GameObject.Find("Canvas").transform, false);  // Attach the text to the Canvas
-            textObj.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -100);  // Position text slightly below the center
-        }
-        else
-        {
-            Debug.LogError("Death Screen Text Prefab is not assigned in the Inspector!");
-        }
-
-        // Destroy all active ducks
+        // Destroy all active ducks (optional: freeze instead of destroy if needed)
         DuckBehavior[] allDucks = FindObjectsOfType<DuckBehavior>();
         foreach (DuckBehavior duck in allDucks)
         {
-            Destroy(duck.gameObject);  // Destroy all ducks to freeze them
+            if (duck != null)
+            {
+                Destroy(duck.gameObject);  // Destroy all ducks to freeze them
+                Debug.Log("Duck destroyed: " + duck.gameObject.name);
+            }
         }
     }
+
+    // Method to restart the game
+    private void RestartGame()
+    {
+        // Reload the current scene to restart the game
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+}
