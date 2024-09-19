@@ -14,6 +14,12 @@ public class DuckBehavior : MonoBehaviour
 
     private void OnMouseDown()
     {
+        // Check if the game is paused or if duckController is null
+        if (duckController == null || duckController.isPaused)
+        {
+            return;  // Do nothing if the game is paused or duckController is not set
+        }
+
         // Notify DuckController that this duck was destroyed and pass whether it's a black duck
         if (duckController != null)
         {
