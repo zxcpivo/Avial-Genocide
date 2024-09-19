@@ -1,18 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;  
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class DuckController : MonoBehaviour
 {
-    public GameObject duckPrefab;       
-    public GameObject blackDuckPrefab;  
+    public GameObject duckPrefab;
+    public GameObject blackDuckPrefab;
     public GameObject deathScreenPrefab;
-    public GameObject deathScreenTextPrefab;
-    public float spawnInterval = 1.5f;  
-    public float duckLifetime = 3.0f;   
+    public GameObject deathScreenTextPrefab;  // Add this field for the text prefab
+    public float spawnInterval = 1.5f;
+    public float duckLifetime = 3.0f;
 
-    private bool isGameOver = false;    // Track if the game is over
+    private bool isGameOver = false;
 
     private void Start()
     {
@@ -21,36 +20,32 @@ public class DuckController : MonoBehaviour
 
     private void Update()
     {
-        // if the game is over and the player presses space this restarts the game
         if (isGameOver && Input.GetKeyDown(KeyCode.Space))
         {
             RestartGame();
         }
     }
 
-    // coroutine for duck spawning
     IEnumerator SpawnDucks()
     {
         while (!isGameOver)
         {
-            SpawnDuck();  
-            yield return new WaitForSeconds(spawnInterval);  
+            SpawnDuck();
+            yield return new WaitForSeconds(spawnInterval);
         }
     }
 
-
     private void SpawnDuck()
     {
-        if (isGameOver) return;  
+        if (isGameOver) return;
 
-        Vector2 randomPosition = new Vector2(Random.Range(-8f, 8f), Random.Range(-4f, 4f));  // Random position within screen bounds
+        Vector2 randomPosition = new Vector2(Random.Range(-8f, 8f), Random.Range(-4f, 4f));
 
-        // Randomly decide whether to spawn a normal duck or a black duck
-        GameObject duckPrefabToSpawn = (Random.value > 0.9f) ? blackDuckPrefab : duckPrefab;  // 10% chance to spawn a black duck
+        GameObject duckPrefabToSpawn = (Random.value > 0.9f) ? blackDuckPrefab : duckPrefab;
 
-        GameObject duck = Instantiate(duckPrefabToSpawn, randomPosition, Quaternion.identity);  
+        GameObject duck = Instantiate(duckPrefabToSpawn, randomPosition, Quaternion.identity);
 
-        DuckBehavior duckBehavior = duck.GetComponent<DuckBehavior>();  
+        DuckBehavior duckBehavior = duck.GetComponent<DuckBehavior>();
         if (duckBehavior != null)
         {
             duckBehavior.SetDuckController(this);
@@ -61,31 +56,29 @@ public class DuckController : MonoBehaviour
             }
         }
 
-        StartCoroutine(DuckLifetime(duck));  //coroutine for duck lifetime
+        StartCoroutine(DuckLifetime(duck));
     }
 
     IEnumerator DuckLifetime(GameObject duck)
     {
         yield return new WaitForSeconds(duckLifetime);
 
-        // check if the duck is still present before destroying it
         if (duck != null && !isGameOver)
         {
-            Destroy(duck);  
-            SpawnDuck();  
+            Destroy(duck);
+            SpawnDuck();
         }
     }
 
-    // duck destruction by clicking
     public void OnDuckDestroyed(bool isBlackDuck)
     {
         if (isBlackDuck)
         {
-            GameOver();  
+            GameOver();
         }
         else
         {
-            SpawnDuck();  
+            SpawnDuck();
         }
     }
 
