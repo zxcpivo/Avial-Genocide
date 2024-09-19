@@ -7,7 +7,8 @@ public class DuckController : MonoBehaviour
 {
     public GameObject duckPrefab;       
     public GameObject blackDuckPrefab;  
-    public GameObject deathScreenPrefab; 
+    public GameObject deathScreenPrefab;
+    public GameObject deathScreenTextPrefab;
     public float spawnInterval = 1.5f;  
     public float duckLifetime = 3.0f;   
 
@@ -90,15 +91,14 @@ public class DuckController : MonoBehaviour
 
     private void GameOver()
     {
-        isGameOver = true;  
+        isGameOver = true;
 
         Debug.Log("Game over triggered");
 
-        //death screen prefab
         if (deathScreenPrefab != null)
         {
             GameObject deathScreen = Instantiate(deathScreenPrefab);
-            deathScreen.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, 0);  // Center the death screen
+            deathScreen.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, 0);
             Debug.Log("Death screen instantiated and positioned.");
         }
         else
@@ -106,13 +106,24 @@ public class DuckController : MonoBehaviour
             Debug.LogError("Death screen prefab is not assigned in the Inspector!");
         }
 
-        // Destroy all active ducks
+        // Instantiate the text to show "Press 'Space' to try again"
+        if (deathScreenTextPrefab != null)
+        {
+            GameObject deathScreenText = Instantiate(deathScreenTextPrefab);
+            deathScreenText.transform.SetParent(GameObject.Find("Canvas").transform, false);  // Attach the text to the Canvas
+            Debug.Log("Death screen text instantiated.");
+        }
+        else
+        {
+            Debug.LogError("Death screen text prefab is not assigned in the Inspector!");
+        }
+
         DuckBehavior[] allDucks = FindObjectsOfType<DuckBehavior>();
         foreach (DuckBehavior duck in allDucks)
         {
             if (duck != null)
             {
-                Destroy(duck.gameObject); 
+                Destroy(duck.gameObject);
                 Debug.Log("Duck destroyed: " + duck.gameObject.name);
             }
         }
@@ -120,7 +131,6 @@ public class DuckController : MonoBehaviour
 
     private void RestartGame()
     {
-
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
