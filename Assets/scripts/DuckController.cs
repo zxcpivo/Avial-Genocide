@@ -1,55 +1,58 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;  
+using UnityEngine.UI; // Add this to use UI elements
+using UnityEngine.SceneManagement;
 
 public class DuckController : MonoBehaviour
 {
-    public GameObject duckPrefab;       
-    public GameObject blackDuckPrefab;  
-    public GameObject deathScreenPrefab; 
-    public float spawnInterval = 1.5f;  
-    public float duckLifetime = 3.0f;   
+    public GameObject duckPrefab;
+    public GameObject blackDuckPrefab;
+    public GameObject deathScreenPrefab;
+    public Text healthText;  // UI Text to display health
+    public float spawnInterval = 1.5f;
+    public float duckLifetime = 3.0f;
 
+    private int health = 3;  // Player's health starts at 3
     private bool isGameOver = false;    // Track if the game is over
 
     private void Start()
     {
+        UpdateHealthText();  // Update UI when game starts
         StartCoroutine(SpawnDucks());
     }
 
     private void Update()
     {
-        // if the game is over and the player presses space this restarts the game
+        // If the game is over and the player presses space, this restarts the game
         if (isGameOver && Input.GetKeyDown(KeyCode.Space))
         {
             RestartGame();
         }
     }
 
-    // coroutine for duck spawning
+    // Coroutine for duck spawning
     IEnumerator SpawnDucks()
     {
         while (!isGameOver)
         {
-            SpawnDuck();  
-            yield return new WaitForSeconds(spawnInterval);  
+            SpawnDuck();
+            yield return new WaitForSeconds(spawnInterval);
         }
     }
 
-
     private void SpawnDuck()
     {
-        if (isGameOver) return;  
+        if (isGameOver) return;
 
         Vector2 randomPosition = new Vector2(Random.Range(-8f, 8f), Random.Range(-4f, 4f));  // Random position within screen bounds
 
         // Randomly decide whether to spawn a normal duck or a black duck
         GameObject duckPrefabToSpawn = (Random.value > 0.9f) ? blackDuckPrefab : duckPrefab;  // 10% chance to spawn a black duck
 
-        GameObject duck = Instantiate(duckPrefabToSpawn, randomPosition, Quaternion.identity);  
+        GameObject duck = Instantiate(duckPrefabToSpawn, randomPosition, Quaternion.identity);
 
-        DuckBehavior duckBehavior = duck.GetComponent<DuckBehavior>();  
+        DuckBehavior duckBehavior = duck.GetComponent<DuckBehavior>();
         if (duckBehavior != null)
         {
             duckBehavior.SetDuckController(this);
@@ -60,41 +63,62 @@ public class DuckController : MonoBehaviour
             }
         }
 
-        StartCoroutine(DuckLifetime(duck));  //coroutine for duck lifetime
+        StartCoroutine(DuckLifetime(duck));  // Coroutine for duck lifetime
     }
 
     IEnumerator DuckLifetime(GameObject duck)
     {
         yield return new WaitForSeconds(duckLifetime);
 
-        // check if the duck is still present before destroying it
+        // Check if the duck is still present before destroying it
         if (duck != null && !isGameOver)
         {
-            Destroy(duck);  
-            SpawnDuck();  
+            Destroy(duck);
+            SpawnDuck();
         }
     }
 
-    // duck destruction by clicking
+    // Duck destruction by clicking
     public void OnDuckDestroyed(bool isBlackDuck)
     {
         if (isBlackDuck)
         {
-            GameOver();  
+            LoseHealth();  // Lose health when black duck is clicked
         }
         else
         {
-            SpawnDuck();  
+            SpawnDuck();  // Spawn another duck when a normal duck is destroyed
+        }
+    }
+
+    private void LoseHealth()
+    {
+        if (isGameOver) return;
+
+        health--;  // Reduce health by 1
+        UpdateHealthText();  // Update the health text on the UI
+
+        if (health <= 0)
+        {
+            GameOver();  // Trigger game over when health reaches 0
+        }
+    }
+
+    private void UpdateHealthText()
+    {
+        if (healthText != null)
+        {
+            healthText.text = "Health: " + health;  // Update the text element with current health
         }
     }
 
     private void GameOver()
     {
-        isGameOver = true;  
+        isGameOver = true;  // Set game over flag
 
         Debug.Log("Game over triggered");
 
-        //death screen prefab
+        // Death screen prefab
         if (deathScreenPrefab != null)
         {
             GameObject deathScreen = Instantiate(deathScreenPrefab);
@@ -112,7 +136,7 @@ public class DuckController : MonoBehaviour
         {
             if (duck != null)
             {
-                Destroy(duck.gameObject); 
+                Destroy(duck.gameObject);
                 Debug.Log("Duck destroyed: " + duck.gameObject.name);
             }
         }
@@ -120,7 +144,6 @@ public class DuckController : MonoBehaviour
 
     private void RestartGame()
     {
-
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);  // Restart the scene
     }
 }
