@@ -12,6 +12,7 @@ public class DuckController : MonoBehaviour
     public GameObject pauseMenuPrefab;
     public Text healthText;  // UI Text for health
     public Text duckClickCounterText;  // UI Text for total ducks clicked
+    public Text highScoreText;  // UI Text for high score display
     public RedFlashController redFlashController;  // Reference to the RedFlashController
     public float spawnInterval = 1.5f;
     public float duckLifetime = 3.0f;
@@ -23,11 +24,14 @@ public class DuckController : MonoBehaviour
     private int health = 3;  // Player starts with 3 health
     private float blackDuckSpawnChance = 0.3f;  // Increase spawn chance to 30%
     private int totalDucksClicked = 0;  // Tracks total ducks clicked
+    private int highScore = 0;  // Tracks the high score
 
     private void Start()
     {
+        highScore = PlayerPrefs.GetInt("HighScore", 0);  // Load high score from PlayerPrefs
         UpdateHealthUI();  // Initialize the health display
         UpdateDuckClickCounterUI();  // Initialize the duck click counter display
+        UpdateHighScoreUI();  // Initialize the high score display
         StartCoroutine(SpawnDucks());
     }
 
@@ -118,12 +122,9 @@ public class DuckController : MonoBehaviour
         }
         else
         {
-            // Increment total ducks clicked only if it's a normal duck
-            totalDucksClicked++;
+            totalDucksClicked++;  // Increment total ducks clicked
             UpdateDuckClickCounterUI();  // Update the UI
-
-            // Continue spawning ducks
-            SpawnDuck();
+            SpawnDuck();  // Continue spawning ducks
         }
     }
 
@@ -145,9 +146,28 @@ public class DuckController : MonoBehaviour
         }
     }
 
+    // Updates the high score UI display
+    private void UpdateHighScoreUI()
+    {
+        if (highScoreText != null)
+        {
+            highScoreText.text = "High Score: " + highScore.ToString();
+        }
+    }
+
     private void GameOver()
     {
         isGameOver = true;
+
+        // Update the high score if necessary
+        if (totalDucksClicked > highScore)
+        {
+            highScore = totalDucksClicked;
+            PlayerPrefs.SetInt("HighScore", highScore);  // Save the new high score
+            PlayerPrefs.Save();
+        }
+
+        UpdateHighScoreUI();  // Update the high score UI
 
         if (deathScreenPrefab != null)
         {
