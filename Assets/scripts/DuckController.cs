@@ -11,6 +11,7 @@ public class DuckController : MonoBehaviour
     public GameObject deathScreenTextPrefab;
     public GameObject pauseMenuPrefab;
     public Text healthText;  // UI Text for health
+    public Text duckClickCounterText;  // UI Text for total ducks clicked
     public RedFlashController redFlashController;  // Reference to the RedFlashController
     public float spawnInterval = 1.5f;
     public float duckLifetime = 3.0f;
@@ -21,10 +22,12 @@ public class DuckController : MonoBehaviour
 
     private int health = 3;  // Player starts with 3 health
     private float blackDuckSpawnChance = 0.3f;  // Increase spawn chance to 30%
+    private int totalDucksClicked = 0;  // Tracks total ducks clicked
 
     private void Start()
     {
         UpdateHealthUI();  // Initialize the health display
+        UpdateDuckClickCounterUI();  // Initialize the duck click counter display
         StartCoroutine(SpawnDucks());
     }
 
@@ -97,6 +100,9 @@ public class DuckController : MonoBehaviour
     // Call this when a duck is clicked
     public void OnDuckDestroyed(bool isBlackDuck)
     {
+        totalDucksClicked++;  // Increment total ducks clicked
+        UpdateDuckClickCounterUI();  // Update the UI
+
         if (isBlackDuck)
         {
             health--;  // Reduce health if black duck is clicked
@@ -119,11 +125,21 @@ public class DuckController : MonoBehaviour
         }
     }
 
+    // Updates the health UI display
     private void UpdateHealthUI()
     {
         if (healthText != null)
         {
             healthText.text = "Health: " + health.ToString();
+        }
+    }
+
+    // Updates the duck click counter UI display
+    private void UpdateDuckClickCounterUI()
+    {
+        if (duckClickCounterText != null)
+        {
+            duckClickCounterText.text = "Ducks Clicked: " + totalDucksClicked.ToString();
         }
     }
 
