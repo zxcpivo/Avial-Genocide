@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;  // Added for UI
+using UnityEngine.UI;
 using System.Collections;
 
 public class DuckController : MonoBehaviour
@@ -19,6 +19,7 @@ public class DuckController : MonoBehaviour
     public GameObject pauseMenuInstance;
 
     private int health = 3;  // Player starts with 3 health
+    private float blackDuckSpawnChance = 0.3f;  // Increase spawn chance to 30%
 
     private void Start()
     {
@@ -62,7 +63,9 @@ public class DuckController : MonoBehaviour
         if (isGameOver || isPaused) return;
 
         Vector2 randomPosition = new Vector2(Random.Range(-8f, 8f), Random.Range(-4f, 4f));
-        GameObject duckPrefabToSpawn = (Random.value > 0.9f) ? blackDuckPrefab : duckPrefab;
+
+        // Increase the chance of spawning black ducks by lowering the threshold
+        GameObject duckPrefabToSpawn = (Random.value < blackDuckSpawnChance) ? blackDuckPrefab : duckPrefab;
         GameObject duck = Instantiate(duckPrefabToSpawn, randomPosition, Quaternion.identity);
 
         DuckBehavior duckBehavior = duck.GetComponent<DuckBehavior>();
