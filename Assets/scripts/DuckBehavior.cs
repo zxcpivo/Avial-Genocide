@@ -26,7 +26,10 @@ public class DuckBehavior : MonoBehaviour
             duckController.OnDuckDestroyed(isBlackDuck);
         }
 
-        Destroy(gameObject);  // Destroy the duck when clicked
-        Debug.Log(isBlackDuck ? "Black Duck Clicked!" : "Normal Duck Shot!");  // Log based on the duck type
+        // Destroy the duck when clicked
+        Destroy(gameObject);
+
+        // Log the type of duck that was clicked
+        Debug.Log(isBlackDuck ? "Black Duck Clicked!" : "Normal Duck Shot!");
     }
 }

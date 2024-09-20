@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;  // Added for UI
 using System.Collections;
 
 public class DuckController : MonoBehaviour
@@ -8,16 +9,20 @@ public class DuckController : MonoBehaviour
     public GameObject blackDuckPrefab;
     public GameObject deathScreenPrefab;
     public GameObject deathScreenTextPrefab;
-    public GameObject pauseMenuPrefab;  // Pause menu prefab
+    public GameObject pauseMenuPrefab;
+    public Text healthText;  // UI Text for health
     public float spawnInterval = 1.5f;
     public float duckLifetime = 3.0f;
 
     private bool isGameOver = false;
     public bool isPaused = false;
-    public GameObject pauseMenuInstance;  // To hold the instantiated pause menu
+    public GameObject pauseMenuInstance;
+
+    private int health = 3;  // Player starts with 3 health
 
     private void Start()
     {
+        UpdateHealthUI();  // Initialize the health display
         StartCoroutine(SpawnDucks());
     }
 
@@ -31,14 +36,13 @@ public class DuckController : MonoBehaviour
         // Check for the Escape key to toggle the pause menu
         if (!isGameOver && Input.GetKeyDown(KeyCode.Escape))
         {
-            Debug.Log(isPaused);
             if (isPaused)
             {
-                ResumeGame();  // Resume the game if it was paused
+                ResumeGame();
             }
             else
             {
-                PauseGame();  // Pause the game if it's not already paused
+                PauseGame();
             }
         }
     }
@@ -55,8 +59,7 @@ public class DuckController : MonoBehaviour
 
     private void SpawnDuck()
     {
-        if (isGameOver) return;
-        if (isPaused) return;
+        if (isGameOver || isPaused) return;
 
         Vector2 randomPosition = new Vector2(Random.Range(-8f, 8f), Random.Range(-4f, 4f));
         GameObject duckPrefabToSpawn = (Random.value > 0.9f) ? blackDuckPrefab : duckPrefab;
@@ -87,15 +90,30 @@ public class DuckController : MonoBehaviour
         }
     }
 
+    // Call this when a duck is clicked
     public void OnDuckDestroyed(bool isBlackDuck)
     {
         if (isBlackDuck)
         {
-            GameOver();
+            health--;  // Reduce health if black duck is clicked
+            UpdateHealthUI();  // Update the health display
+
+            if (health <= 0)
+            {
+                GameOver();  // Trigger game over if health reaches 0
+            }
         }
         else
         {
-            SpawnDuck();
+            SpawnDuck();  // Continue spawning ducks if it's not a black duck
+        }
+    }
+
+    private void UpdateHealthUI()
+    {
+        if (healthText != null)
+        {
+            healthText.text = "Health: " + health.ToString();
         }
     }
 
@@ -129,14 +147,11 @@ public class DuckController : MonoBehaviour
     private void PauseGame()
     {
         isPaused = true;
-        Time.timeScale = 0f;  // Freeze the game
+        Time.timeScale = 0f;
 
-        // Instantiate the pause menu prefab
         if (pauseMenuInstance != null)
         {
             pauseMenuInstance.SetActive(true);
-            // pauseMenuInstance = Instantiate(pauseMenuPrefab);
-            // pauseMenuInstance.transform.SetParent(GameObject.Find("Canvas").transform, false);
         }
     }
 
@@ -144,19 +159,17 @@ public class DuckController : MonoBehaviour
     public void ResumeGame()
     {
         isPaused = false;
-        Time.timeScale = 1f;  // Resume the game
+        Time.timeScale = 1f;
 
-        // Destroy the pause menu instance
         if (pauseMenuInstance != null)
         {
             pauseMenuInstance.SetActive(false);
-            // Destroy(pauseMenuInstance);
         }
     }
 
     private void RestartGame()
     {
-        Time.timeScale = 1f;  // Make sure to reset time scale when restarting
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
