@@ -5,15 +5,18 @@ using System.Collections;
 
 public class DuckController : MonoBehaviour
 {
-    public GameObject duckPrefab;
-    public GameObject blackDuckPrefab;
+    public GameObject whiteDuckPrefab;
+    public GameObject greenDuckPrefab;
+    public GameObject yellowDuckPrefab;
+    public GameObject goldenGoosePrefab;
+    public GameObject blackDuckPrefab;  // The black (evil) duck prefab
     public GameObject deathScreenPrefab;
     public GameObject deathScreenTextPrefab;
     public GameObject pauseMenuPrefab;
-    public Text healthText;  // UI Text for health
-    public Text duckClickCounterText;  // UI Text for total ducks clicked
-    public Text highScoreText;  // UI Text for high score display
-    public RedFlashController redFlashController;  // Reference to the RedFlashController
+    public Text healthText;
+    public Text duckClickCounterText;
+    public Text highScoreText;
+    public RedFlashController redFlashController;
     public float spawnInterval = 1.5f;
     public float duckLifetime = 3.0f;
 
@@ -21,17 +24,17 @@ public class DuckController : MonoBehaviour
     public bool isPaused = false;
     public GameObject pauseMenuInstance;
 
-    private int health = 3;  // Player starts with 3 health
-    private float blackDuckSpawnChance = 0.3f;  // Increase spawn chance to 30%
-    private int totalDucksClicked = 0;  // Tracks total ducks clicked
-    private int highScore = 0;  // Tracks the high score
+    private int health = 3;
+    private int totalDucksClicked = 0;
+    private int highScore = 0;
+    private float blackDuckSpawnChance = 0.1f;  // Set a spawn chance for the black duck (10%)
 
     private void Start()
     {
-        highScore = PlayerPrefs.GetInt("HighScore", 0);  // Load high score from PlayerPrefs
-        UpdateHealthUI();  // Initialize the health display
-        UpdateDuckClickCounterUI();  // Initialize the duck click counter display
-        UpdateHighScoreUI();  // Initialize the high score display
+        highScore = PlayerPrefs.GetInt("HighScore", 0);
+        UpdateHealthUI();
+        UpdateDuckClickCounterUI();
+        UpdateHighScoreUI();
         StartCoroutine(SpawnDucks());
     }
 
@@ -42,7 +45,6 @@ public class DuckController : MonoBehaviour
             RestartGame();
         }
 
-        // Check for the Escape key to toggle the pause menu
         if (!isGameOver && Input.GetKeyDown(KeyCode.Escape))
         {
             if (isPaused)
@@ -72,8 +74,7 @@ public class DuckController : MonoBehaviour
 
         Vector2 randomPosition = new Vector2(Random.Range(-8f, 8f), Random.Range(-4f, 4f));
 
-        // Increase the chance of spawning black ducks by lowering the threshold
-        GameObject duckPrefabToSpawn = (Random.value < blackDuckSpawnChance) ? blackDuckPrefab : duckPrefab;
+        GameObject duckPrefabToSpawn = SelectDuckPrefab(); // Select the duck type based on rarity
         GameObject duck = Instantiate(duckPrefabToSpawn, randomPosition, Quaternion.identity);
 
         DuckBehavior duckBehavior = duck.GetComponent<DuckBehavior>();
@@ -81,13 +82,40 @@ public class DuckController : MonoBehaviour
         {
             duckBehavior.SetDuckController(this);
 
-            if (duckPrefabToSpawn == blackDuckPrefab)
-            {
-                duckBehavior.isBlackDuck = true;
-            }
-        }
+            // Assign points based on the duck type
+            if (duckPrefabToSpawn == whiteDuckPrefab)
+                duckBehavior.points = 1;  // White duck
+            else if (duckPrefabToSpawn == greenDuckPrefab)
+                duckBehavior.points = 2;  // Green duck
+            else if (duckPrefabToSpawn == yellowDuckPrefab)
+                duckBehavior.points = 3;  // Yellow duck
+            else if (duckPrefabToSpawn == goldenGoosePrefab)
+                duckBehavior.points = 10;  // Golden goose
 
-        StartCoroutine(DuckLifetime(duck));
+            // Mark as black duck if blackDuckPrefab
+            if (duckPrefabToSpawn == blackDuckPrefab)
+                duckBehavior.isBlackDuck = true;
+
+            StartCoroutine(DuckLifetime(duck));
+        }
+    }
+
+    // Select the duck type based on rarity
+    private GameObject SelectDuckPrefab()
+    {
+        float randomValue = Random.value;
+
+        // Check if the black duck should spawn (before other rare ducks)
+        if (randomValue < blackDuckSpawnChance)
+            return blackDuckPrefab;
+        else if (randomValue < 0.05f)  // 5% chance for Golden Goose
+            return goldenGoosePrefab;
+        else if (randomValue < 0.15f)  // 10% chance for Yellow Duck
+            return yellowDuckPrefab;
+        else if (randomValue < 0.35f)  // 20% chance for Green Duck
+            return greenDuckPrefab;
+        else  // 65% chance for White Duck
+            return whiteDuckPrefab;
     }
 
     IEnumerator DuckLifetime(GameObject duck)
@@ -102,14 +130,13 @@ public class DuckController : MonoBehaviour
     }
 
     // Call this when a duck is clicked
-    public void OnDuckDestroyed(bool isBlackDuck)
+    public void OnDuckDestroyed(bool isBlackDuck, int points)
     {
         if (isBlackDuck)
         {
             health--;  // Reduce health if black duck is clicked
-            UpdateHealthUI();  // Update the health display
+            UpdateHealthUI();
 
-            // Trigger the red flash effect
             if (redFlashController != null)
             {
                 redFlashController.TriggerRedFlash();
@@ -117,18 +144,18 @@ public class DuckController : MonoBehaviour
 
             if (health <= 0)
             {
-                GameOver();  // Trigger game over if health reaches 0
+                GameOver();
             }
         }
         else
         {
-            totalDucksClicked++;  // Increment total ducks clicked
-            UpdateDuckClickCounterUI();  // Update the UI
-            SpawnDuck();  // Continue spawning ducks
+            totalDucksClicked += points;  // Add points based on the duck type
+            UpdateDuckClickCounterUI();
         }
+
+        SpawnDuck();  // Continue spawning ducks after one is clicked
     }
 
-    // Updates the health UI display
     private void UpdateHealthUI()
     {
         if (healthText != null)
@@ -137,7 +164,6 @@ public class DuckController : MonoBehaviour
         }
     }
 
-    // Updates the duck click counter UI display
     private void UpdateDuckClickCounterUI()
     {
         if (duckClickCounterText != null)
@@ -146,7 +172,6 @@ public class DuckController : MonoBehaviour
         }
     }
 
-    // Updates the high score UI display
     private void UpdateHighScoreUI()
     {
         if (highScoreText != null)
@@ -159,15 +184,14 @@ public class DuckController : MonoBehaviour
     {
         isGameOver = true;
 
-        // Update the high score if necessary
         if (totalDucksClicked > highScore)
         {
             highScore = totalDucksClicked;
-            PlayerPrefs.SetInt("HighScore", highScore);  // Save the new high score
+            PlayerPrefs.SetInt("HighScore", highScore);
             PlayerPrefs.Save();
         }
 
-        UpdateHighScoreUI();  // Update the high score UI
+        UpdateHighScoreUI();
 
         if (deathScreenPrefab != null)
         {
@@ -191,7 +215,6 @@ public class DuckController : MonoBehaviour
         }
     }
 
-    // Method to pause the game
     private void PauseGame()
     {
         isPaused = true;
@@ -203,7 +226,6 @@ public class DuckController : MonoBehaviour
         }
     }
 
-    // Method to resume the game
     public void ResumeGame()
     {
         isPaused = false;

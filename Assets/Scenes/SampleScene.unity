@@ -1167,7 +1167,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f54d906b075f44673970e147d701f96d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duckPrefab: {fileID: 3810645428090086965, guid: bc5b1f43fdf484a8190e2a75b328f354, type: 3}
+  whiteDuckPrefab: {fileID: 3810645428090086965, guid: bc5b1f43fdf484a8190e2a75b328f354, type: 3}
+  greenDuckPrefab: {fileID: 3810645428090086965, guid: 7ed9915b7f876904a88f5fd3f55e5009, type: 3}
+  yellowDuckPrefab: {fileID: 3810645428090086965, guid: 5779c5a9f5d2ce54f9e0799956d4d091, type: 3}
+  goldenGoosePrefab: {fileID: 3810645428090086965, guid: 0045858bfa054b04b94e8d190be517f3, type: 3}
   blackDuckPrefab: {fileID: 196482805596279437, guid: 7ecdf828c2b4a4f009ce6e724cfaf857, type: 3}
   deathScreenPrefab: {fileID: 7571373661164044687, guid: 79ac437ce209a47c4944055157a1bfb1, type: 3}
   deathScreenTextPrefab: {fileID: 3735616924058737695, guid: 51f7c1a28f91446d29596ec4baa11814, type: 3}
