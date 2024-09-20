@@ -11,6 +11,7 @@ public class DuckController : MonoBehaviour
     public GameObject deathScreenTextPrefab;
     public GameObject pauseMenuPrefab;
     public Text healthText;  // UI Text for health
+    public RedFlashController redFlashController;  // Reference to the RedFlashController
     public float spawnInterval = 1.5f;
     public float duckLifetime = 3.0f;
 
@@ -100,6 +101,12 @@ public class DuckController : MonoBehaviour
         {
             health--;  // Reduce health if black duck is clicked
             UpdateHealthUI();  // Update the health display
+
+            // Trigger the red flash effect
+            if (redFlashController != null)
+            {
+                redFlashController.TriggerRedFlash();
+            }
 
             if (health <= 0)
             {
