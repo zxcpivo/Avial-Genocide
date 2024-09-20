@@ -5,17 +5,20 @@ using UnityEngine;
 public class DuckBehavior : MonoBehaviour
 {
     private DuckController duckController;  // Reference to DuckController
-    public bool isBlackDuck = false;        // A flag to check if this is the black duck
+    public bool isBlackDuck = false;  // A flag to check if this is the black duck
 
     public void SetDuckController(DuckController controller)
     {
-        duckController = controller;        // Set the reference to DuckController
+        duckController = controller;  // Set the reference to DuckController
     }
 
     private void OnMouseDown()
     {
-        // Only allow duck to be clicked if the game is NOT paused
-        if (Time.timeScale == 0f) return;
+        // Check if the game is paused or if duckController is null
+        if (duckController == null || duckController.isPaused)
+        {
+            return;  // Do nothing if the game is paused or duckController is not set
+        }
 
         // Notify DuckController that this duck was destroyed and pass whether it's a black duck
         if (duckController != null)

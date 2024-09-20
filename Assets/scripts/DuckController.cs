@@ -1,37 +1,49 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; // Add this to use UI elements
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class DuckController : MonoBehaviour
 {
     public GameObject duckPrefab;
     public GameObject blackDuckPrefab;
     public GameObject deathScreenPrefab;
-    public Text healthText;  // UI Text to display health
+    public GameObject deathScreenTextPrefab;
+    public GameObject pauseMenuPrefab;  // Pause menu prefab
     public float spawnInterval = 1.5f;
     public float duckLifetime = 3.0f;
 
-    private int health = 3;  // Player's health starts at 3
-    private bool isGameOver = false;    // Track if the game is over
+    private bool isGameOver = false;
+    public bool isPaused = false;
+    public GameObject pauseMenuInstance;  // To hold the instantiated pause menu
 
     private void Start()
     {
-        UpdateHealthText();  // Update UI when game starts
         StartCoroutine(SpawnDucks());
     }
 
     private void Update()
     {
-        // If the game is over and the player presses space, this restarts the game
         if (isGameOver && Input.GetKeyDown(KeyCode.Space))
         {
             RestartGame();
         }
+
+        // Check for the Escape key to toggle the pause menu
+        if (!isGameOver && Input.GetKeyDown(KeyCode.Escape))
+        {
+            Debug.Log(isPaused);
+            if (isPaused)
+            {
+                ResumeGame();  // Resume the game if it was paused
+            }
+            else
+            {
+                PauseGame();  // Pause the game if it's not already paused
+            }
+        }
     }
 
-    // Coroutine for duck spawning
+    // Coroutine to handle duck spawning
     IEnumerator SpawnDucks()
     {
         while (!isGameOver)
@@ -44,12 +56,10 @@ public class DuckController : MonoBehaviour
     private void SpawnDuck()
     {
         if (isGameOver) return;
+        if (isPaused) return;
 
-        Vector2 randomPosition = new Vector2(Random.Range(-8f, 8f), Random.Range(-4f, 4f));  // Random position within screen bounds
-
-        // Randomly decide whether to spawn a normal duck or a black duck
-        GameObject duckPrefabToSpawn = (Random.value > 0.9f) ? blackDuckPrefab : duckPrefab;  // 10% chance to spawn a black duck
-
+        Vector2 randomPosition = new Vector2(Random.Range(-8f, 8f), Random.Range(-4f, 4f));
+        GameObject duckPrefabToSpawn = (Random.value > 0.9f) ? blackDuckPrefab : duckPrefab;
         GameObject duck = Instantiate(duckPrefabToSpawn, randomPosition, Quaternion.identity);
 
         DuckBehavior duckBehavior = duck.GetComponent<DuckBehavior>();
@@ -63,14 +73,13 @@ public class DuckController : MonoBehaviour
             }
         }
 
-        StartCoroutine(DuckLifetime(duck));  // Coroutine for duck lifetime
+        StartCoroutine(DuckLifetime(duck));
     }
 
     IEnumerator DuckLifetime(GameObject duck)
     {
         yield return new WaitForSeconds(duckLifetime);
 
-        // Check if the duck is still present before destroying it
         if (duck != null && !isGameOver)
         {
             Destroy(duck);
@@ -78,72 +87,76 @@ public class DuckController : MonoBehaviour
         }
     }
 
-    // Duck destruction by clicking
     public void OnDuckDestroyed(bool isBlackDuck)
     {
         if (isBlackDuck)
         {
-            LoseHealth();  // Lose health when black duck is clicked
+            GameOver();
         }
         else
         {
-            SpawnDuck();  // Spawn another duck when a normal duck is destroyed
-        }
-    }
-
-    private void LoseHealth()
-    {
-        if (isGameOver) return;
-
-        health--;  // Reduce health by 1
-        UpdateHealthText();  // Update the health text on the UI
-
-        if (health <= 0)
-        {
-            GameOver();  // Trigger game over when health reaches 0
-        }
-    }
-
-    private void UpdateHealthText()
-    {
-        if (healthText != null)
-        {
-            healthText.text = "Health: " + health;  // Update the text element with current health
+            SpawnDuck();
         }
     }
 
     private void GameOver()
     {
-        isGameOver = true;  // Set game over flag
+        isGameOver = true;
 
-        Debug.Log("Game over triggered");
-
-        // Death screen prefab
         if (deathScreenPrefab != null)
         {
             GameObject deathScreen = Instantiate(deathScreenPrefab);
-            deathScreen.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, 0);  // Center the death screen
-            Debug.Log("Death screen instantiated and positioned.");
-        }
-        else
-        {
-            Debug.LogError("Death screen prefab is not assigned in the Inspector!");
+            deathScreen.transform.position = new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y, 0);
         }
 
-        // Destroy all active ducks
+        if (deathScreenTextPrefab != null)
+        {
+            GameObject deathScreenText = Instantiate(deathScreenTextPrefab);
+            deathScreenText.transform.SetParent(GameObject.Find("Canvas").transform, false);
+        }
+
         DuckBehavior[] allDucks = FindObjectsOfType<DuckBehavior>();
         foreach (DuckBehavior duck in allDucks)
         {
             if (duck != null)
             {
                 Destroy(duck.gameObject);
-                Debug.Log("Duck destroyed: " + duck.gameObject.name);
             }
+        }
+    }
+
+    // Method to pause the game
+    private void PauseGame()
+    {
+        isPaused = true;
+        Time.timeScale = 0f;  // Freeze the game
+
+        // Instantiate the pause menu prefab
+        if (pauseMenuInstance != null)
+        {
+            pauseMenuInstance.SetActive(true);
+            // pauseMenuInstance = Instantiate(pauseMenuPrefab);
+            // pauseMenuInstance.transform.SetParent(GameObject.Find("Canvas").transform, false);
+        }
+    }
+
+    // Method to resume the game
+    public void ResumeGame()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;  // Resume the game
+
+        // Destroy the pause menu instance
+        if (pauseMenuInstance != null)
+        {
+            pauseMenuInstance.SetActive(false);
+            // Destroy(pauseMenuInstance);
         }
     }
 
     private void RestartGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);  // Restart the scene
+        Time.timeScale = 1f;  // Make sure to reset time scale when restarting
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
