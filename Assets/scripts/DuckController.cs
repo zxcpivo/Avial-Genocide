@@ -100,9 +100,6 @@ public class DuckController : MonoBehaviour
     // Call this when a duck is clicked
     public void OnDuckDestroyed(bool isBlackDuck)
     {
-        totalDucksClicked++;  // Increment total ducks clicked
-        UpdateDuckClickCounterUI();  // Update the UI
-
         if (isBlackDuck)
         {
             health--;  // Reduce health if black duck is clicked
@@ -121,7 +118,12 @@ public class DuckController : MonoBehaviour
         }
         else
         {
-            SpawnDuck();  // Continue spawning ducks if it's not a black duck
+            // Increment total ducks clicked only if it's a normal duck
+            totalDucksClicked++;
+            UpdateDuckClickCounterUI();  // Update the UI
+
+            // Continue spawning ducks
+            SpawnDuck();
         }
     }
 
